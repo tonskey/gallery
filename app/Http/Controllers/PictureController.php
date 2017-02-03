@@ -11,17 +11,7 @@ use Imagine\Image\Box;
 use Imagine\Image\ImageInterface;
 use Orchestra\Imagine\Facade as Imagine;
 use Illuminate\Support\Facades\Storage;
-function create_thumbnail($path,$filename,$ext)
-{
-    $width=150;
-    $height=150;
-    $mode=ImageInterface::THUMBNAIL_OUTBOUND;
-    $size=new Box($width,$height);
-    $thumb=Imagine::open("{$path}/${filename}.{$ext}")->thumbnail($size,$mode);
-    $destination="{$filename}.thumb.{$ext}";
-    $thumb->save("{$path}/{$destination}");
-    return "{$path}/{$destination}";
-}
+
 class PictureController extends Controller
 {
     /**
@@ -31,16 +21,30 @@ class PictureController extends Controller
      */
     public function _construct()
     {
-        $this->middleware('store');
-        $this->middleware('destroy');
-        $this->middleware('update');
+        // $this->middleware('jwt.auth');
+    }
+    public function create_thumbnail($path,$filename,$ext)
+    {
+        $width=150;
+        $height=150;
+        $mode=ImageInterface::THUMBNAIL_OUTBOUND;
+        $size=new Box($width,$height);
+        $thumb=Imagine::open("{$path}/${filename}.{$ext}")->thumbnail($size,$mode);
+        $destination="{$filename}.thumb.{$ext}";
+        $thumb->save("{$path}/{$destination}");
+        return "{$path}/{$destination}";
+    }
+    public function delete_picture($p)
+    {
+        Storage::delete($p->thumb);
+        Storage::delete($p->picture);
+        //Storage::delete($p->thumb);
+        //Storage::delete($p->picture);
     }
     public function index(Request $r)
     {
         $dir=$r->input('dir','desc');
-        // $p=Picture::all();
         return Picture::orderBy('created_at',$dir)->paginate(12);
-        // return $dir=='asc'?$p->sortBy('created_at'):$p->sortByDesc('created_at');
     }
 
     /**
@@ -63,16 +67,18 @@ class PictureController extends Controller
     {
         $this->validate($request,[
             'title'=>'required|min:3',
-            'description'=>'required|min:3'
+            'description'=>'required|min:3',
+            'img'=>'required|file'
         ]);
         $p=new Picture;
         $p->title=$request->input('title');
-        $p->description=$request->input('title');
+        $p->description=$request->input('description');
         $p->views=0;
+        $p->save();
         $file=$request->file('img');
-        $name=rand(1111,9999).$file->getClientOriginalName();
+        $name=rand(1,9999)."id$p->id.".$file->getClientOriginalExtension();
         $file->move('img',$name);
-        $p->thumb='/'.create_thumbnail(
+        $p->thumb='/'.$this->create_thumbnail(
             'img',
             pathinfo($name)['filename'],
             pathinfo($name)['extension']
@@ -118,17 +124,19 @@ class PictureController extends Controller
     {
         $this->validate($request,[
             'title'=>'required|min:3',
-            'description'=>'required|min:3'
+            'description'=>'required|min:3',
+            'img'=>'required|file'
         ]);
         $p=Picture::find($id);
         $p->title=$request->input('title');
         $p->description=$request->input('description');
         if($request->input('changeFoto')==='true')
         {
+            $this->delete_picture($p);
             $file=$request->file('img');
-            $name=rand(1111,9999).$file->getClientOriginalName();
+            $name=rand(1,9999)."id$p->id.".$file->getClientOriginalExtension();
             $file->move('img',$name);
-            $p->thumb='/'.create_thumbnail(
+            $p->thumb='/'.$this->create_thumbnail(
                 'img',
                 pathinfo($name)['filename'],
                 pathinfo($name)['extension']
@@ -147,6 +155,8 @@ class PictureController extends Controller
      */
     public function destroy($id)
     {
-        Picture::destroy($id);
+        $p=Picture::find($id);
+        $this->delete_picture($p);
+        $p->delete();
     }
 }
