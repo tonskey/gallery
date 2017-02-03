@@ -51,14 +51,20 @@
   		methods:{
   			login()
   			{
-  				this.$store.dispatch('login',this.loginU).then(function(){
-  					console.log('good');
+  				this.$store.dispatch('login',this.loginU).then(()=>{
+  					if(this.$route.query.redirect){
+  						let c=this.$route.query.redirect;
+  						this.$router.push(c);
+  					}else{
+  						this.$router.push({name:'home'});
+  					}
   				},(res)=>{
   					this.notAuth=res.data.error;
   				});
   			}
   		},
   		created(){
+			this.$store.dispatch('setTitle',`Login`);
   		}
 	};
 </script>
