@@ -65,7 +65,12 @@
   				let self=this;
   				this.$store.dispatch('register',this.loginU).then(()=>{
   					self.$store.dispatch('login',this.loginU).then(()=>{
-  						console.log('good auth from reg');
+  						if(this.$route.query.redirect){
+  							let c=this.$route.query.redirect;
+  							this.$router.push(c);
+  						}else{
+  							this.$router.push({name:'home'});
+  						}
   					},()=>{
   						console.log('err auth from reg');
   					})
