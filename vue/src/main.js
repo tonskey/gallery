@@ -33,7 +33,7 @@ const router = new VueRouter({
         {
             path:'/create',
             component:require('./components/create.vue'),
-            name:'create'
+            name:'create',
             meta:{auth:true}
         },
         {
@@ -67,9 +67,19 @@ const router = new VueRouter({
         }
     }
 });
+router.beforeEach((to,from,next)=>{
+    if(to.matched.some(r=>r.meta.auth)&&localStorage.getItem('id_token')==null){
+        next({
+            path:'/login',
+            query:{redirect:to.fullPath}
+        })
+    }else{
+        next();
+    }
+})
 new Vue({
-	el:'#app',
-	router,
+    el:'#app',
+    router,
     store,
-	render:h=>h(require('./App.vue'))
+    render:h=>h(require('./App.vue'))
 });
