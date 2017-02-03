@@ -1,7 +1,11 @@
 <template>
 <div v-if="picture" class="row">
 	<div class="col-md-12">
-		<h3>{{picture.title}}</h3>
+		<div class="page-header">
+ 			<h2>
+ 				{{picture.title}}
+ 			</h2>
+		</div>
 		<div class="wrap">
 			<img 
 				:src="picture.picture" 
