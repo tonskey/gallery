@@ -98,13 +98,18 @@ export default {
   	methods:{
   		add()
   		{  		
-  			let self=this;
-  			if(this.$data.errors.errors.length!=0)
+  			if(this.errors.errors.length!=0||
+  				this.newpost.img==null||
+  				this.newpost.body==null||
+  				this.newpost.title==null
+  				)
   			{
   				this.block.success=null;
   				this.block.error='You have error in some field';
   				return;
-  			}
+  			};
+  			console.log(this.$validator);
+  			console.log(this.errors);
   			let post=new FormData();
   			post.append('title',this.newpost.title);
   			post.append('description',this.newpost.body);
@@ -112,7 +117,7 @@ export default {
   			this.$http
   			.post('/p',post,{emulateJSON:true}).then(res=>{
   				this.block.error=null;
-  				self.block.success=`Your post was created successfully!`
+  				this.block.success=`Your picture was created successfully!`
   			},err=>{
   				console.log(err);
   				this.block.error=err.data;
@@ -120,12 +125,11 @@ export default {
   		},
   		file(e)
   		{
-  			let self=this;
   			let file=e.target.files[0]||e.dataTransfer.files[0];
   			this.newpost.img=file;
   			var reader=new FileReader();
-  			reader.addEventListener('load',function(){
-  				self.preview=reader.result;
+  			reader.addEventListener('load',()=>{
+  				this.preview=reader.result;
   			},false)
   			reader.readAsDataURL(file);
   		}
