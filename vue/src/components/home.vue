@@ -1,7 +1,7 @@
 <template>
 <div class="row">
 	<div class="col-md-9">
-		<template v-if="pictures">
+		<template v-if="pictures&&pictures!='null'">
 			<a  
 				:disabled="sortDir=='asc'?true:false"
 				@click.prevent="sort('asc')" 
@@ -74,6 +74,34 @@
 				</button>
 			</div>
 		</template>	
+		<template v-if="!pictures">
+			<div class="row">
+			<div class="col-md-12">
+			<div class="jumbotron">
+				<h2>Sorry, but we don`t have the pictures:(</h2>
+				<template v-if="user">
+					<p>
+						Add something incredible
+					</p>
+					<p>
+			  			<router-link
+							class="btn btn-primary btn-lg" 
+							:to="{name:'create'}"
+							role="button"
+						>
+							Create pictures
+						</router-link>	
+			  		</p>
+				</template>
+				<template v-else>
+					<p>
+						Whait, some we will surprise you
+					</p>
+				</template>
+			</div>
+			</div>
+			</div>
+		</template>
 	</div>
 </div>
 </template>
@@ -82,7 +110,7 @@
 		name:'home',
 		data(){
 			return {
-				pictures:null,
+				pictures:'null',
 				sortDir:'desc',
 				pagination:{},
 			}
@@ -98,7 +126,11 @@
 				this.$http
 				.get(`/p?dir=${this.sortDir}&page=${page}`)
 				.then(function(response){
+
 					this.pictures=response.data.data;
+					if(this.pictures.length==0){
+						this.pictures=null;
+					}
 					this.paginate(response.data);
 				})
 			},
